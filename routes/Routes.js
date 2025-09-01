@@ -1,19 +1,14 @@
-const express = require("express");
+// routes/flowRoutes.js
+
+import express from "express";
+import { unlockFields, terminalScreen } from "../controllers/flowController.js";
+
 const router = express.Router();
-const studentController = require("../controller/flow");
 
-router.post("/", (req, res) => {
-  const { action } = req.body;
+// Dynamic Flow endpoint
+router.post("/unlock-fields", unlockFields);
 
-  if (action === "add_fields") {
-    return studentController.addFields(req, res);
-  }
+// Terminal screen (optional)
+router.post("/terminal", terminalScreen);
 
-  if (action === "submit") {
-    return studentController.submitStudents(req, res);
-  }
-
-  return res.status(400).json({ error: "Unknown action" });
-});
-
-module.exports = router;
+export default router;

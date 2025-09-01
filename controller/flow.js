@@ -1,58 +1,78 @@
-const Student = require("../model/student");
+// controllers/flowController.js
 
-// Track student count per session (for demo, in memory)
-let studentCount = 1;
+export const unlockFields = (req, res) => {
+  const { form } = req.body; // user input data
+  const field1 = form?.field1 || "";
+  const field2 = form?.field2 || "";
 
-exports.addFields = (req, res) => {
-  studentCount++;
-  const newFields = [
-    {
-      type: "TextInput",
-      label: `Student Name ${studentCount}`,
-      name: `name_${studentCount}`,
-      required: true
-    },
-    {
-      type: "TextInput",
-      label: `Student Age ${studentCount}`,
-      name: `age_${studentCount}`,
-      required: true
-    }
-  ];
+  const enableExtra = field1.trim() !== "" && field2.trim() !== "";
 
-  return res.json({
+  const responsePayload = {
+    version: "7.2",
+    data_api_version: "3.0",
     screen: {
-      id: "student_screen",
-      dynamic_updates: {
-        add_children: newFields
+      id: "FORM_SCREEN",
+      title: "Conditional Fields",
+      layout: {
+        type: "SingleColumnLayout",
+        children: [
+          {
+            type: "Form",
+            name: "main_form",
+            children: [
+              {
+                type: "TextInput",
+                name: "field1",
+                label: "Enter First Value",
+                required: true,
+                value: field1
+              },
+              {
+                type: "TextInput",
+                name: "field2",
+                label: "Enter Second Value",
+                required: true,
+                value: field2
+              },
+              {
+                type: "TextInput",
+                name: "field3",
+                label: "Third Field",
+                enabled: enableExtra
+              },
+              {
+                type: "TextInput",
+                name: "field4",
+                label: "Fourth Field",
+                enabled: enableExtra
+              }
+            ]
+          }
+        ]
+      }
+    }
+  };
+
+  return res.json(responsePayload);
+};
+
+export const terminalScreen = (req, res) => {
+  return res.json({
+    version: "7.2",
+    data_api_version: "3.0",
+    screen: {
+      id: "TERMINAL",
+      title: "Done",
+      terminal: true,
+      layout: {
+        type: "SingleColumnLayout",
+        children: [
+          {
+            type: "Text",
+            text: "Thank you! Flow completed."
+          }
+        ]
       }
     }
   });
-};
-
-exports.submitStudents = async (req, res) => {
-  try {
-    const { userId, form } = req.body;
-    const students = [];
-
-    const formKeys = Object.keys(form);
-    for (let i = 0; i < formKeys.length; i += 2) {
-      const nameKey = formKeys[i];
-      const ageKey = formKeys[i + 1];
-      if (nameKey && ageKey) {
-        students.push({
-          name: form[nameKey],
-          age: parseInt(form[ageKey])
-        });
-      }
-    }
-
-    const entry = new Student({ userId: userId || "demo_user", students });
-    await entry.save();
-
-    return res.json({ success: true, message: "Students saved successfully" });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Error saving data" });
-  }
 };
