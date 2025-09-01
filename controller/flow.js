@@ -5,6 +5,7 @@ export const unlockFields = (req, res) => {
   const field1 = form?.field1 || "";
   const field2 = form?.field2 || "";
 
+  // Enable extra fields only if both field1 and field2 have values
   const enableExtra = field1.trim() !== "" && field2.trim() !== "";
 
   const responsePayload = {
@@ -54,25 +55,4 @@ export const unlockFields = (req, res) => {
   };
 
   return res.json(responsePayload);
-};
-
-export const terminalScreen = (req, res) => {
-  return res.json({
-    version: "7.2",
-    data_api_version: "3.0",
-    screen: {
-      id: "TERMINAL",
-      title: "Done",
-      terminal: true,
-      layout: {
-        type: "SingleColumnLayout",
-        children: [
-          {
-            type: "Text",
-            text: "Thank you! Flow completed."
-          }
-        ]
-      }
-    }
-  });
 };
