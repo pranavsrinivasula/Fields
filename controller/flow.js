@@ -1,58 +1,36 @@
-// controllers/flowController.js
+// Called whenever user types in field1 or field2
+async function onFieldChange(formValues) {
+  const { field1, field2 } = formValues;
 
-export const unlockFields = (req, res) => {
-  const { form } = req.body; // user input data
-  const field1 = form?.field1 || "";
-  const field2 = form?.field2 || "";
+  // Only call API when both fields have values
+  if (field1?.trim() && field2?.trim()) {
+    try {
+      const response = await fetch("/api/unlock-fields", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ field1, field2 })
+      });
 
-  // Enable extra fields only if both field1 and field2 have values
-  const enableExtra = field1.trim() !== "" && field2.trim() !== "";
+      if (!response.ok) throw new Error("Failed to fetch updated fields");
 
-  const responsePayload = {
-    version: "7.2",
-    data_api_version: "3.0",
-    screen: {
-      id: "FORM_SCREEN",
-      title: "Conditional Fields",
-      layout: {
-        type: "SingleColumnLayout",
-        children: [
-          {
-            type: "Form",
-            name: "main_form",
-            children: [
-              {
-                type: "TextInput",
-                name: "field1",
-                label: "Enter First Value",
-                required: true,
-                value: field1
-              },
-              {
-                type: "TextInput",
-                name: "field2",
-                label: "Enter Second Value",
-                required: true,
-                value: field2
-              },
-              {
-                type: "TextInput",
-                name: "field3",
-                label: "Third Field",
-                enabled: enableExtra
-              },
-              {
-                type: "TextInput",
-                name: "field4",
-                label: "Fourth Field",
-                enabled: enableExtra
-              }
-            ]
-          }
-        ]
-      }
+      const updatedScreen = await response.json();
+
+      // Update your frontend form with enabled fields
+      updateFormUI(updatedScreen.formFields); 
+      // Note: backend should return an array like [{ name, enabled, value }]
+    } catch (err) {
+      console.error("Error unlocking fields:", err);
     }
-  };
+  }
+}
 
-  return res.json(responsePayload);
-};
+// Function to update UI dynamically
+function updateFormUI(formFields) {
+  formFields.forEach(field => {
+    const inputEl = document.querySelector(`[name="${field.name}"]`);
+    if (inputEl) {
+      inputEl.disabled = field.enabled === false; // enable/disable field
+      if ("value" in field && field.value !== undefined) inputEl.value = field.value;
+    }
+  });
+}
